@@ -25,9 +25,7 @@ class App:
             # Altrimenti, inizia con il primo file di lista
             self.lista = ListaTitoli(self.list_files[0])
         
-        # Crea il bottone per creare una nuova lista
-        self.nuova_lista_button = tk.Button(root, text="Crea nuova lista", command=self.crea_nuova_lista)
-        self.nuova_lista_button.pack()
+        
 
         # Crea il menu a tendina
         self.selected_file = tk.StringVar(self.root)
@@ -44,21 +42,26 @@ class App:
         self.aggiungi_bottone = tk.Button(root, text="Aggiungi Titolo", command=self.aggiungi_titolo, bg='black', fg='white')
         self.salva_bottone = tk.Button(root, text="Salva Lista", command=self.salva_lista, bg='black', fg='white')
         self.rimuovi_bottone = tk.Button(root, text="Rimuovi Titolo", command=self.rimuovi_titolo, bg='black', fg='white')
+        # Crea il bottone per creare una nuova lista
+        self.nuova_lista_button = tk.Button(root, text="Crea nuova lista", command=self.crea_nuova_lista) 
+        self.nuova_lista_button.pack() 
 
         # Posizionamento dei bottoni
         self.aggiungi_bottone.pack(fill=tk.BOTH)
         self.salva_bottone.pack(fill=tk.BOTH)
         self.rimuovi_bottone.pack(fill=tk.BOTH)
+        self.nuova_lista_button.pack(fill=tk.BOTH)
 
     def seleziona_lista(self, file_name):
         self.lista = ListaTitoli(file_name)
         self.aggiorna_elenco()
         messagebox.showinfo("Successo", f"Lista '{file_name}' selezionata con successo!")
     
-    def crea_nuova_lista(self):
+    def crea_nuova_lista(self):  # crea una nuova lista vuota
         self.lista = ListaTitoli()  # create a new empty list
-        self.update_lista_display()  # update the list display
-        self.update_option_menu()  # update the dropdown menu
+        self.aggiorna_elenco()  # update the list display
+        self.aggiorna_menu()  # update the dropdown menu
+
 
     def aggiungi_titolo(self):
         titolo = simpledialog.askstring("Aggiungi Titolo", "Inserisci il titolo da aggiungere:")
@@ -86,13 +89,14 @@ class App:
         for titolo in self.lista.titoli:
             self.listbox.insert(tk.END, titolo)  # Aggiunge ogni titolo alla Listbox
 
-    def aggiorna_menu(self, file_path):
-        # Aggiungi il nuovo file all'elenco dei file
-        self.list_files.append(os.path.basename(file_path))
-        # Ricrea il menu a tendina con l'elenco dei file aggiornato
-        self.dropdown['menu'].delete(0, 'end')
-        for file_name in self.list_files:
-            self.dropdown['menu'].add_command(label=file_name, command=tk._setit(self.selected_file, file_name, self.seleziona_lista))
+    def aggiorna_menu(self, file_path=None):
+        if file_path is not None:
+         #    Aggiungi il nuovo file all'elenco dei file
+            self.list_files.append(os.path.basename(file_path))
+            # Ricrea il menu a tendina con l'elenco dei file aggiornato
+            self.dropdown['menu'].delete(0, 'end')
+            for file_name in self.list_files:
+                self.dropdown['menu'].add_command(label=file_name, command=tk._setit(self.selected_file, file_name, self.seleziona_lista))
     
     def update_option_menu(self):
         menu = self.om["menu"]
@@ -100,6 +104,7 @@ class App:
         for string in self.options:
             menu.add_command(label=string, 
                             command=lambda value=string: self.om_variable.set(value))
+    
 
 
 root = tk.Tk()

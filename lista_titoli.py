@@ -12,11 +12,11 @@ import os.path
 class ListaTitoli:
     def __init__(self, file_name='lista_titoli.txt'):
         self.file_name = file_name
-        self.titoli = []
-        # Carica i titoli dal file, se esiste
-        if os.path.isfile(self.file_name):
-            with open(self.file_name, 'r') as f:
-                self.titoli = [line.strip() for line in f]
+        if not os.path.isfile(self.file_name):
+            open(self.file_name, 'a').close()  # Crea un file vuoto se non esiste
+        with open(self.file_name, 'r') as file:
+            self.titoli = [line.strip() for line in file.readlines()]
+
 
     def aggiungi_titolo(self, titolo):
         if titolo not in self.titoli:
