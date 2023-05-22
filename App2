@@ -1,0 +1,81 @@
+# creato da chat in modo automatico ma non ok
+
+
+import socket
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.options = self.retrieve_lists()  # retrieve the list names from a directory or a database
+
+        self.om_variable = tk.StringVar(self.root)
+        self.om_variable.set(self.options[0])
+        self.om_variable.trace('w', self.option_select)
+
+        self.om = tk.OptionMenu(self.root, self.om_variable, *self.options)
+        self.om.grid(column=0, row=0)
+
+        self.button = tk.Button(self.root, text='Start Feed', command=self.start_feed)
+        self.button.grid(column=1, row=0)
+
+    def retrieve_lists(self):
+        # function to get the list names from a directory or a database
+        return ['List 1', 'List 2', 'List 3']  # replace with actual code
+
+    def option_select(self, *args):
+        print(self.om_variable.get())
+
+    def start_feed(self):
+        selected_list = self.om_variable.get()
+        datafeed(selected_list)
+
+    def update_option_menu(self):
+        # Get the updated list
+        self.options = self.retrieve_lists()
+
+        # Update the option menu
+        menu = self.om["menu"]
+        menu.delete(0, "end")
+        for string in self.options:
+            menu.add_command(label=string, 
+                             command=lambda value=string: self.om_variable.set(value))
+
+def datafeed(selected_list):
+    porta = 10001
+    buffersize = 256
+    comando = f"SUBPRZALL {selected_list}\n"
+    host = "127.0.0.1"
+    df = pd.DataFrame(columns=['Bid', 'Ask'])  # DataFrame per conservare i dati
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, porta))
+        comando = comando.encode()
+        s.send(comando)
+
+        bidask_data = []
+        while True:
+            dati = s.recv(buffersize)  # Ricezione dei dati
+            decoded_data = dati.decode()  # Decodifica dei dati
+            if decoded_data.startswith("BIDASK"):
+                bidask_data.append(decoded_data)
+                print("bidaskdata:", ", ".join(bidask_data))
+
+            df = pd.DataFrame([data.split(";")[1:] for data in bidask_data], 
+                              columns=["Ticker", "Time", "QuantBid","p1", "Bid", "QuantAsk", "p2", "Ask"])
+            df.to_csv("dati.csv", index=False)
+
+        s.close()
+    except socket.error as err:
+        print(f"Errore: {err}")
+        exit(0)
+
+    df.to_csv('bid_ask.csv', index=False)
+    messagebox.showinfo("Successo", "Dati salvati con successo!")
+
+root = tk.Tk()
+App(root)
+root.mainloop()
